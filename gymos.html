@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymOS — Plataforma de Academia</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E8192C;
+    --red-dark: #B01020;
+    --red-glow: rgba(232,25,44,0.25);
+    --black: #0A0A0A;
+    --black2: #111111;
+    --black3: #1A1A1A;
+    --black4: #222222;
+    --black5: #2A2A2A;
+    --gray: #444444;
+    --gray-light: #888888;
+    --white: #F5F5F5;
+    --white-dim: rgba(245,245,245,0.7);
+    --border: rgba(255,255,255,0.07);
+    --border-red: rgba(232,25,44,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black2); }
+  ::-webkit-scrollbar-thumb { background: var(--red-dark); border-radius: 2px; }
+
+  /* ─── LOGIN SCREEN ─── */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: var(--black);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 48px;
+  }
+  .login-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 64px; font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--white);
+    line-height: 1;
+  }
+  .login-logo span { color: var(--red); }
+  .login-sub { color: var(--gray-light); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-top: -36px; }
+  .login-card {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 40px;
+    width: 360px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .login-card h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-left: 3px solid var(--red);
+    padding-left: 12px;
+  }
+  .login-role-pick { display: flex; gap: 8px; }
+  .role-btn {
+    flex: 1; padding: 12px;
+    background: var(--black3);
+    border: 1px solid var(--border);
+    color: var(--gray-light);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; border-radius: 3px;
+    transition: all .2s;
+  }
+  .role-btn:hover, .role-btn.active {
+    background: var(--red); color: var(--white);
+    border-color: var(--red);
+  }
+  .login-input {
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .login-input:focus { border-color: var(--red); }
+  .login-input::placeholder { color: var(--gray); }
+  .btn-primary {
+    background: var(--red);
+    border: none; border-radius: 3px;
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 14px; cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-primary:active { transform: scale(.98); }
+
+  /* ─── APP SHELL ─── */
+  #app { display: none; height: 100vh; overflow: hidden; }
+  #app.visible { display: flex; flex-direction: column; }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    height: 56px;
+    background: var(--black2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 100;
+  }
+  .topbar-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px; font-weight: 900;
+    letter-spacing: -1px;
+    color: var(--white);
+  }
+  .topbar-logo span { color: var(--red); }
+  .topbar-divider { width: 1px; height: 24px; background: var(--border); }
+  .topbar-role-tag {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--red);
+    background: var(--red-glow);
+    border: 1px solid var(--border-red);
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+  .topbar-spacer { flex: 1; }
+  .topbar-switch {
+    display: flex;
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .switch-btn {
+    padding: 6px 16px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--gray-light);
+    cursor: pointer; border: none;
+    background: transparent;
+    font-family: 'Outfit', sans-serif;
+    transition: all .2s;
+  }
+  .switch-btn.active { background: var(--red); color: var(--white); }
+  .topbar-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 800;
+    cursor: pointer;
+  }
+  .topbar-name { font-size: 13px; font-weight: 500; color: var(--white-dim); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 220px;
+    background: var(--black2);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 20px 0 8px;
+  }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gray);
+    padding: 0 20px 8px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--gray-light);
+    font-size: 14px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+  .sidebar-item:hover { color: var(--white); background: var(--black3); }
+  .sidebar-item.active {
+    color: var(--white);
+    border-left-color: var(--red);
+    background: rgba(232,25,44,0.08);
+  }
+  .sidebar-item .icon { font-size: 18px; width: 20px; text-align: center; }
+  .badge {
+    margin-left: auto;
+    background: var(--red);
+    color: var(--white);
+    font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  /* ─── CONTENT AREA ─── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    background: var(--black);
+  }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px; font-weight: 900;
+    letter-spacing: -1px; text-transform: uppercase;
+    line-height: 1;
+  }
+  .page-title span { color: var(--red); }
+  .page-subtitle { font-size: 13px; color: var(--gray-light); margin-top: 4px; }
+
+  /* ─── STAT CARDS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: var(--border-red); }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--red);
+  }
+  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray-light); margin-bottom: 8px; }
+  .stat-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 40px; font-weight: 900; line-height: 1;
+    color: var(--white);
+  }
+  .stat-value.red { color: var(--red); }
+  .stat-delta { font-size: 12px; color: #4CAF50; margin-top: 4px; }
+  .stat-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: .15; }
+
+  /* ─── TABLES ─── */
+  .section-card {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .section-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .btn-sm {
+    background: var(--red);
+    border: none; border-radius: 3px;
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 16px; cursor: pointer;
+    transition: background .2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-sm:hover { background: var(--red-dark); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--gray-light);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 16px; cursor: pointer; border-radius: 3px;
+    transition: all .2s;
+  }
+  .btn-outline:hover { border-color: var(--red); color: var(--red); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th {
+    text-align: left;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gray);
+    padding: 12px 20px;
+  }
+  td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--white-dim);
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .15s; }
+  tbody tr:hover { background: var(--black3); }
+
+  .pill {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 2px;
+  }
+  .pill-green { background: rgba(76,175,80,.15); color: #4CAF50; border: 1px solid rgba(76,175,80,.3); }
+  .pill-red { background: rgba(232,25,44,.15); color: var(--red); border: 1px solid var(--border-red); }
+  .pill-yellow { background: rgba(255,193,7,.15); color: #FFC107; border: 1px solid rgba(255,193,7,.3); }
+  .pill-gray { background: var(--black3); color: var(--gray-light); border: 1px solid var(--border); }
+
+  /* ─── DASHBOARD EXTRA ─── */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .activity-list { list-style: none; }
+  .activity-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+  .activity-time { margin-left: auto; font-size: 11px; color: var(--gray); }
+
+  /* ─── WORKOUT BUILDER ─── */
+  .workout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray-light); }
+  input, select, textarea {
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--red); }
+  select option { background: var(--black3); }
+  .exercise-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 36px;
+    gap: 8px; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .exercise-row:last-child { border-bottom: none; }
+  .btn-icon {
+    width: 32px; height: 32px;
+    background: var(--black4);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--gray-light);
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .btn-icon:hover { background: var(--red); border-color: var(--red); color: var(--white); }
+
+  /* ─── CASH FLOW CHART ─── */
+  .chart-bars {
+    display: flex; align-items: flex-end;
+    gap: 8px; height: 140px;
+    padding: 0 20px 0;
+  }
+  .bar-group { flex: 1; display: flex; gap: 3px; align-items: flex-end; }
+  .bar {
+    flex: 1; border-radius: 2px 2px 0 0;
+    transition: opacity .2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .bar:hover { opacity: .8; }
+  .bar.income { background: var(--red); }
+  .bar.expense { background: var(--black5); border: 1px solid var(--gray); }
+  .chart-labels {
+    display: flex; gap: 8px;
+    padding: 8px 20px 0;
+  }
+  .chart-label { flex: 1; text-align: center; font-size: 10px; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ─── SOCIAL FEED ─── */
+  .feed-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+  .feed-post {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .feed-post:hover { border-color: rgba(255,255,255,0.12); }
+  .feed-post.announcement {
+    border-color: var(--border-red);
+    background: linear-gradient(135deg, var(--black2) 0%, rgba(232,25,44,0.04) 100%);
+  }
+  .post-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .post-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .post-avatar.personal { background: var(--red); color: var(--white); }
+  .post-avatar.aluno1 { background: #2C2C6E; color: #7B7FFF; }
+  .post-avatar.aluno2 { background: #1A3A1A; color: #5EFF5E; }
+  .post-avatar.aluno3 { background: #3A1A1A; color: #FF7B5E; }
+  .post-name { font-size: 14px; font-weight: 600; }
+  .post-role { font-size: 11px; color: var(--gray-light); }
+  .post-time { margin-left: auto; font-size: 11px; color: var(--gray); }
+  .announcement-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--red-glow); color: var(--red);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 2px;
+    border: 1px solid var(--border-red);
+    margin-left: 8px;
+  }
+  .post-body { padding: 16px; }
+  .post-body p { font-size: 14px; line-height: 1.6; color: var(--white-dim); }
+  .post-image {
+    width: 100%; height: 200px;
+    background: var(--black3);
+    object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; color: var(--gray);
+  }
+  .post-actions {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 20px;
+  }
+  .post-action {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--gray-light);
+    cursor: pointer; border: none; background: none;
+    font-family: 'Outfit', sans-serif;
+    transition: color .15s;
+  }
+  .post-action:hover { color: var(--red); }
+  .post-action.liked { color: var(--red); }
+
+  /* ─── SIDEBAR RIGHT ─── */
+  .right-sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .widget {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .widget-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .widget-header .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+  .widget-body { padding: 16px; }
+  .my-workout-day {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .my-workout-day:last-child { border-bottom: none; }
+  .day-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--red); width: 36px;
+  }
+  .workout-name { font-weight: 500; }
+  .workout-exercises { font-size: 11px; color: var(--gray-light); }
+
+  /* ─── COMPOSE POST ─── */
+  .compose-box {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .compose-top { display: flex; gap: 12px; margin-bottom: 12px; }
+  .compose-textarea {
+    flex: 1;
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    resize: none; height: 80px;
+    outline: none;
+    transition: border-color .2s;
+    width: 100%;
+  }
+  .compose-textarea:focus { border-color: var(--red); }
+  .compose-actions { display: flex; align-items: center; justify-content: space-between; }
+  .compose-type { display: flex; gap: 8px; }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar-wrap { background: var(--black3); border-radius: 2px; height: 4px; margin-top: 4px; }
+  .progress-bar { height: 4px; border-radius: 2px; background: var(--red); }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.8);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 540px; max-height: 85vh;
+    overflow-y: auto;
+    animation: fadeIn .2s ease;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    border-left: 3px solid var(--red); padding-left: 12px;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--gray-light);
+    font-size: 20px; cursor: pointer;
+    transition: color .2s;
+  }
+  .modal-close:hover { color: var(--white); }
+  .modal-body { padding: 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── INVENTORY ITEMS ─── */
+  .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding: 16px; }
+  .inv-item {
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .inv-item:hover { border-color: var(--border-red); }
+  .inv-icon { font-size: 32px; margin-bottom: 8px; }
+  .inv-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .inv-qty {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 900;
+    color: var(--white);
+  }
+  .inv-unit { font-size: 11px; color: var(--gray-light); }
+  .inv-status { margin-top: 8px; }
+
+  /* ─── SEARCH ─── */
+  .search-bar {
+    background: var(--black3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    width: 260px;
+  }
+  .search-bar:focus { border-color: var(--red); }
+  .search-bar::placeholder { color: var(--gray); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .sidebar { width: 56px; }
+    .sidebar-item span:not(.icon) { display: none; }
+    .sidebar-section-label { display: none; }
+    .badge { display: none; }
+    .feed-layout { grid-template-columns: 1fr; }
+    .right-sidebar { display: none; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .workout-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  /* ─── NOTIFICATION BADGE ─── */
+  .notif-bell {
+    position: relative; cursor: pointer;
+    font-size: 20px; color: var(--gray-light);
+    padding: 4px;
+  }
+  .notif-dot {
+    position: absolute; top: 2px; right: 0;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--red);
+    border: 2px solid var(--black2);
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN ─── -->
+<div id="login-screen">
+  <div>
+    <div class="login-logo">GYM<span>OS</span></div>
+    <div class="login-sub">Plataforma de Academia</div>
+  </div>
+  <div class="login-card">
+    <h2>Entrar</h2>
+    <div>
+      <label style="margin-bottom:8px;display:block;">Entrar como</label>
+      <div class="login-role-pick">
+        <button class="role-btn active" onclick="setRole('personal')">⚡ Personal</button>
+        <button class="role-btn" onclick="setRole('aluno')">🏋️ Aluno</button>
+      </div>
+    </div>
+    <input class="login-input" type="text" placeholder="Email ou usuário" id="login-user">
+    <input class="login-input" type="password" placeholder="Senha" id="login-pass" value="123">
+    <button class="btn-primary" onclick="doLogin()">ACESSAR →</button>
+  </div>
+</div>
+
+<!-- ─── APP ─── -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">GYM<span>OS</span></div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-role-tag" id="role-tag">PERSONAL</div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-switch" id="view-switch" style="display:none;">
+      <button class="switch-btn active" onclick="switchView('painel')" id="btn-painel">Painel</button>
+      <button class="switch-btn" onclick="switchView('social')" id="btn-social">Social</button>
+    </div>
+    <div class="notif-bell" onclick="alert('3 notificações novas')">🔔<div class="notif-dot"></div></div>
+    <div class="topbar-name" id="topbar-name">Carlos Ferreira</div>
+    <div class="topbar-avatar" id="topbar-avatar">CF</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-layout">
+    <!-- SIDEBAR (Personal) -->
+    <div class="sidebar" id="sidebar-personal">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Visão Geral</div>
+        <div class="sidebar-item active" onclick="goPage('dashboard')">
+          <span class="icon">📊</span><span>Dashboard</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Gestão</div>
+        <div class="sidebar-item" onclick="goPage('alunos')">
+          <span class="icon">👥</span><span>Alunos</span>
+          <span class="badge">3</span>
+        </div>
+        <div class="sidebar-item" onclick="goPage('treinos')">
+          <span class="icon">💪</span><span>Treinos</span>
+        </div>
+        <div class="sidebar-item" onclick="goPage('mensalidades')">
+          <span class="icon">💳</span><span>Mensalidades</span>
+          <span class="badge" style="background:#FFC107;color:#000;">2</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Financeiro</div>
+        <div class="sidebar-item" onclick="goPage('caixa')">
+          <span class="icon">🏦</span><span>Controle de Caixa</span>
+        </div>
+        <div class="sidebar-item" onclick="goPage('estoque')">
+          <span class="icon">📦</span><span>Estoque</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Social</div>
+        <div class="sidebar-item" onclick="switchView('social');goSocialPage('feed')">
+          <span class="icon">📢</span><span>Comunicados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR (Aluno) -->
+    <div class="sidebar" id="sidebar-aluno" style="display:none;">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Social</div>
+        <div class="sidebar-item active" onclick="goSocialPage('feed')">
+          <span class="icon">🏠</span><span>Feed</span>
+        </div>
+        <div class="sidebar-item" onclick="goSocialPage('meus-treinos')">
+          <span class="icon">💪</span><span>Meus Treinos</span>
+        </div>
+        <div class="sidebar-item" onclick="goSocialPage('perfil')">
+          <span class="icon">👤</span><span>Perfil</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Conta</div>
+        <div class="sidebar-item" onclick="alert('Mensalidade: ATIVA — vence 15/04/2025')">
+          <span class="icon">💳</span><span>Mensalidade</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content">
+
+      <!-- ╔══ PERSONAL PAGES ══╗ -->
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dash<span>board</span></div>
+            <div class="page-subtitle">Visão geral de hoje — Sexta-feira, 28 Mar 2025</div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-label">Alunos Ativos</div>
+            <div class="stat-value">48</div>
+            <div class="stat-delta">↑ +3 este mês</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Receita Mensal</div>
+            <div class="stat-value red">R$<br>9.840</div>
+            <div class="stat-delta">↑ +12% vs. mês anterior</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-label">Mensalidades Vencendo</div>
+            <div class="stat-value">7</div>
+            <div class="stat-delta" style="color:#FFC107;">↗ próximos 7 dias</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏋️</div>
+            <div class="stat-label">Treinos Criados</div>
+            <div class="stat-value">23</div>
+            <div class="stat-delta">↑ +2 esta semana</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-label">Itens em Estoque</div>
+            <div class="stat-value">142</div>
+            <div class="stat-delta" style="color:#FF6B6B;">↓ 3 itens críticos</div>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span class="section-card-title">Atividade Recente</span>
+            </div>
+            <ul class="activity-list">
+              <li class="activity-item"><span class="activity-dot"></span>Lucas Rodrigues finalizou o treino A<span class="activity-time">há 12 min</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Fernanda Costa pagou mensalidade<span class="activity-time">há 45 min</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>João Alves iniciou treino de peito<span class="activity-time">há 1h</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Whey Protein atingiu estoque mínimo<span class="activity-time">há 2h</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Mariana Lima assinou plano mensal<span class="activity-time">ontem</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Novo treino "Hipertrofia B" criado<span class="activity-time">ontem</span></li>
+            </ul>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <span class="section-card-title">Alunos Online Hoje</span>
+            </div>
+            <ul class="activity-list">
+              <li class="activity-item"><span class="activity-dot" style="background:#4CAF50"></span>Lucas Rodrigues <span style="font-size:11px;color:var(--gray-light);margin-left:4px;">— Treino A</span><span class="activity-time" style="color:#4CAF50;">online</span></li>
+              <li class="activity-item"><span class="activity-dot" style="background:#4CAF50"></span>João Alves <span style="font-size:11px;color:var(--gray-light);margin-left:4px;">— Peito/Tríceps</span><span class="activity-time" style="color:#4CAF50;">online</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Fernanda Costa<span class="activity-time">10:30</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Carlos Menezes<span class="activity-time">09:15</span></li>
+              <li class="activity-item"><span class="activity-dot"></span>Priscila Santos<span class="activity-time">08:00</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALUNOS -->
+      <div class="page" id="page-alunos">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Alu<span>nos</span></div>
+            <div class="page-subtitle">48 alunos ativos · 5 inativos</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input class="search-bar" type="text" placeholder="🔍  Buscar aluno...">
+            <button class="btn-sm" onclick="openModal('modal-add-aluno')">+ Novo Aluno</button>
+          </div>
+        </div>
+        <div class="section-card">
+          <table>
+            <thead><tr>
+              <th>Aluno</th><th>Plano</th><th>Vencimento</th><th>Treino</th><th>Frequência</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+              <tr><td><strong>Lucas Rodrigues</strong><br><span style="font-size:11px;color:var(--gray-light)">lucas@email.com</span></td><td>Mensal</td><td>15/04/25</td><td>Hipertrofia A</td><td><div style="font-size:13px;">4x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:80%"></div></div></td><td><span class="pill pill-green">Ativo</span></td><td><button class="btn-outline" onclick="alert('Perfil de Lucas Rodrigues')">Ver</button></td></tr>
+              <tr><td><strong>Fernanda Costa</strong><br><span style="font-size:11px;color:var(--gray-light)">fernanda@email.com</span></td><td>Trimestral</td><td>02/06/25</td><td>Funcional C</td><td><div style="font-size:13px;">3x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></td><td><span class="pill pill-green">Ativo</span></td><td><button class="btn-outline">Ver</button></td></tr>
+              <tr><td><strong>João Alves</strong><br><span style="font-size:11px;color:var(--gray-light)">joao@email.com</span></td><td>Mensal</td><td>10/04/25</td><td>Peito/Tríceps</td><td><div style="font-size:13px;">5x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:100%"></div></div></td><td><span class="pill pill-yellow">Vencendo</span></td><td><button class="btn-outline">Ver</button></td></tr>
+              <tr><td><strong>Mariana Lima</strong><br><span style="font-size:11px;color:var(--gray-light)">mariana@email.com</span></td><td>Mensal</td><td>01/04/25</td><td>Hipertrofia B</td><td><div style="font-size:13px;">2x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:40%"></div></div></td><td><span class="pill pill-yellow">Vencendo</span></td><td><button class="btn-outline">Ver</button></td></tr>
+              <tr><td><strong>Carlos Menezes</strong><br><span style="font-size:11px;color:var(--gray-light)">carlos@email.com</span></td><td>Semestral</td><td>15/09/25</td><td>Full Body</td><td><div style="font-size:13px;">3x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div></td><td><span class="pill pill-green">Ativo</span></td><td><button class="btn-outline">Ver</button></td></tr>
+              <tr><td><strong>Priscila Santos</strong><br><span style="font-size:11px;color:var(--gray-light)">priscila@email.com</span></td><td>Mensal</td><td>28/03/25</td><td>Emagrecimento A</td><td><div style="font-size:13px;">1x/sem</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:20%"></div></div></td><td><span class="pill pill-red">Vencido</span></td><td><button class="btn-outline">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TREINOS -->
+      <div class="page" id="page-treinos">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Trei<span>nos</span></div>
+            <div class="page-subtitle">Monte e gerencie protocolos de treino</div>
+          </div>
+          <button class="btn-sm" onclick="openModal('modal-treino')">+ Criar Treino</button>
+        </div>
+        <div class="workout-grid">
+          <div class="section-card">
+            <div class="section-card-header">
+              <span class="section-card-title">Hipertrofia A — Peito/Tríceps</span>
+              <span class="pill pill-green">Ativo</span>
+            </div>
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray-light);">
+              Alunos: 12 &nbsp;|&nbsp; Criado: 10/03/25 &nbsp;|&nbsp; Nível: Intermediário
+            </div>
+            <div style="padding:0;">
+              <div class="exercise-row" style="padding:10px 20px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--border);">
+                <div>Exercício</div><div>Séries</div><div>Reps</div><div>Descanso</div><div></div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Supino Reto c/ Barra</div><div>4</div><div>8–12</div><div>90s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Supino Inclinado Halteres</div><div>3</div><div>10–12</div><div>60s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Crucifixo Máquina</div><div>3</div><div>12–15</div><div>45s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Tríceps Pulley</div><div>4</div><div>10–12</div><div>60s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;border-bottom:none;">
+                <div>Tríceps Testa</div><div>3</div><div>10</div><div>60s</div><div>✏️</div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <span class="section-card-title">Hipertrofia B — Costas/Bíceps</span>
+              <span class="pill pill-green">Ativo</span>
+            </div>
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray-light);">
+              Alunos: 12 &nbsp;|&nbsp; Criado: 10/03/25 &nbsp;|&nbsp; Nível: Intermediário
+            </div>
+            <div style="padding:0;">
+              <div class="exercise-row" style="padding:10px 20px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--border);">
+                <div>Exercício</div><div>Séries</div><div>Reps</div><div>Descanso</div><div></div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Puxada Frente</div><div>4</div><div>8–10</div><div>90s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Remada Curvada</div><div>4</div><div>8–12</div><div>90s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Remada Unilateral</div><div>3</div><div>12</div><div>60s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Rosca Direta</div><div>4</div><div>10–12</div><div>60s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;border-bottom:none;">
+                <div>Rosca Martelo</div><div>3</div><div>12</div><div>45s</div><div>✏️</div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header">
+              <span class="section-card-title">Funcional C — Core/Cardio</span>
+              <span class="pill pill-green">Ativo</span>
+            </div>
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray-light);">
+              Alunos: 8 &nbsp;|&nbsp; Criado: 15/03/25 &nbsp;|&nbsp; Nível: Iniciante
+            </div>
+            <div style="padding:0;">
+              <div class="exercise-row" style="padding:10px 20px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--border);">
+                <div>Exercício</div><div>Séries</div><div>Reps</div><div>Descanso</div><div></div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Prancha Abdominal</div><div>3</div><div>60s</div><div>30s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;">
+                <div>Burpee</div><div>4</div><div>10</div><div>60s</div><div>✏️</div>
+              </div>
+              <div class="exercise-row" style="padding:10px 20px;border-bottom:none;">
+                <div>Mountain Climber</div><div>3</div><div>30s</div><div>30s</div><div>✏️</div>
+              </div>
+            </div>
+          </div>
+          <div class="section-card" style="border:2px dashed var(--border);background:transparent;display:flex;align-items:center;justify-content:center;min-height:200px;cursor:pointer;" onclick="openModal('modal-treino')">
+            <div style="text-align:center;color:var(--gray);">
+              <div style="font-size:48px;margin-bottom:8px;">+</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Criar Novo Treino</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MENSALIDADES -->
+      <div class="page" id="page-mensalidades">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Mensal<span>idades</span></div>
+            <div class="page-subtitle">Controle de pagamentos e planos</div>
+          </div>
+          <button class="btn-sm" onclick="openModal('modal-mensalidade')">+ Registrar Pagamento</button>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+          <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Pagos este mês</div><div class="stat-value">41</div></div>
+          <div class="stat-card"><div class="stat-icon">⏰</div><div class="stat-label">Vencendo em 7 dias</div><div class="stat-value red">7</div></div>
+          <div class="stat-card"><div class="stat-icon">❌</div><div class="stat-label">Em atraso</div><div class="stat-value">2</div></div>
+        </div>
+        <div class="section-card">
+          <table>
+            <thead><tr><th>Aluno</th><th>Plano</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><strong>Lucas Rodrigues</strong></td><td>Mensal</td><td>R$ 180,00</td><td>15/04/25</td><td>15/03/25</td><td><span class="pill pill-green">Pago</span></td><td><button class="btn-outline">Recibo</button></td></tr>
+              <tr><td><strong>Fernanda Costa</strong></td><td>Trimestral</td><td>R$ 480,00</td><td>02/06/25</td><td>02/03/25</td><td><span class="pill pill-green">Pago</span></td><td><button class="btn-outline">Recibo</button></td></tr>
+              <tr><td><strong>João Alves</strong></td><td>Mensal</td><td>R$ 180,00</td><td>10/04/25</td><td>—</td><td><span class="pill pill-yellow">Vencendo</span></td><td><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Cobrar</button></td></tr>
+              <tr><td><strong>Mariana Lima</strong></td><td>Mensal</td><td>R$ 180,00</td><td>01/04/25</td><td>—</td><td><span class="pill pill-yellow">Vencendo</span></td><td><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Cobrar</button></td></tr>
+              <tr><td><strong>Carlos Menezes</strong></td><td>Semestral</td><td>R$ 900,00</td><td>15/09/25</td><td>15/03/25</td><td><span class="pill pill-green">Pago</span></td><td><button class="btn-outline">Recibo</button></td></tr>
+              <tr><td><strong>Priscila Santos</strong></td><td>Mensal</td><td>R$ 180,00</td><td>28/03/25</td><td>—</td><td><span class="pill pill-red">Vencido</span></td><td><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Cobrar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CAIXA -->
+      <div class="page" id="page-caixa">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Controle de <span>Caixa</span></div>
+            <div class="page-subtitle">Fluxo de receitas e despesas — Março 2025</div>
+          </div>
+          <button class="btn-sm" onclick="openModal('modal-lancamento')">+ Lançamento</button>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+          <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-label">Receita Total</div><div class="stat-value red">R$<br>9.840</div></div>
+          <div class="stat-card"><div class="stat-icon">📉</div><div class="stat-label">Despesas</div><div class="stat-value">R$<br>3.200</div></div>
+          <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label">Saldo Líquido</div><div class="stat-value">R$<br>6.640</div></div>
+        </div>
+        <div class="section-card" style="margin-bottom:20px;">
+          <div class="section-card-header"><span class="section-card-title">Receita vs Despesa — 2025</span><div style="display:flex;gap:12px;font-size:12px;"><span style="color:var(--red);">■ Receita</span><span style="color:var(--gray-light);">■ Despesa</span></div></div>
+          <div style="padding-top:20px;">
+            <div class="chart-bars">
+              <div class="bar-group"><div class="bar income" style="height:75%"></div><div class="bar expense" style="height:35%"></div></div>
+              <div class="bar-group"><div class="bar income" style="height:80%"></div><div class="bar expense" style="height:30%"></div></div>
+              <div class="bar-group"><div class="bar income" style="height:100%"></div><div class="bar expense" style="height:38%"></div></div>
+              <div class="bar-group"><div class="bar income" style="height:60%"></div><div class="bar expense" style="height:25%"></div></div>
+              <div class="bar-group"><div class="bar income" style="height:70%"></div><div class="bar expense" style="height:28%"></div></div>
+              <div class="bar-group"><div class="bar income" style="height:85%"></div><div class="bar expense" style="height:40%"></div></div>
+            </div>
+            <div class="chart-labels">
+              <div class="chart-label">Out</div><div class="chart-label">Nov</div><div class="chart-label">Dez</div>
+              <div class="chart-label">Jan</div><div class="chart-label">Fev</div><div class="chart-label">Mar</div>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <table>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>28/03/25</td><td>Mensalidade — Fernanda Costa</td><td>Mensalidades</td><td><span class="pill pill-green">Receita</span></td><td style="color:#4CAF50;font-weight:600;">+ R$ 180,00</td></tr>
+              <tr><td>27/03/25</td><td>Compra de Suplementos — Reposição</td><td>Estoque</td><td><span class="pill pill-red">Despesa</span></td><td style="color:var(--red);font-weight:600;">− R$ 850,00</td></tr>
+              <tr><td>25/03/25</td><td>Mensalidade — Carlos Menezes</td><td>Mensalidades</td><td><span class="pill pill-green">Receita</span></td><td style="color:#4CAF50;font-weight:600;">+ R$ 900,00</td></tr>
+              <tr><td>20/03/25</td><td>Conta de Energia Elétrica</td><td>Fixo</td><td><span class="pill pill-red">Despesa</span></td><td style="color:var(--red);font-weight:600;">− R$ 420,00</td></tr>
+              <tr><td>15/03/25</td><td>Mensalidade — Lucas Rodrigues</td><td>Mensalidades</td><td><span class="pill pill-green">Receita</span></td><td style="color:#4CAF50;font-weight:600;">+ R$ 180,00</td></tr>
+              <tr><td>10/03/25</td><td>Aluguel da Academia</td><td>Fixo</td><td><span class="pill pill-red">Despesa</span></td><td style="color:var(--red);font-weight:600;">− R$ 1.800,00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ESTOQUE -->
+      <div class="page" id="page-estoque">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Esto<span>que</span></div>
+            <div class="page-subtitle">Controle de produtos e suprimentos</div>
+          </div>
+          <button class="btn-sm" onclick="openModal('modal-produto')">+ Adicionar Item</button>
+        </div>
+        <div class="section-card">
+          <div class="section-card-header"><span class="section-card-title">Produtos em Estoque</span><input class="search-bar" style="width:200px;" type="text" placeholder="🔍  Buscar..."></div>
+          <div class="inventory-grid">
+            <div class="inv-item">
+              <div class="inv-icon">🥛</div>
+              <div class="inv-name">Whey Protein</div>
+              <div class="inv-qty">4</div>
+              <div class="inv-unit">unidades (900g)</div>
+              <div class="inv-status"><span class="pill pill-red">Crítico</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">💊</div>
+              <div class="inv-name">Creatina</div>
+              <div class="inv-qty">12</div>
+              <div class="inv-unit">unidades (300g)</div>
+              <div class="inv-status"><span class="pill pill-green">OK</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">🧴</div>
+              <div class="inv-name">BCAA</div>
+              <div class="inv-qty">8</div>
+              <div class="inv-unit">unidades (200g)</div>
+              <div class="inv-status"><span class="pill pill-yellow">Baixo</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">🩺</div>
+              <div class="inv-name">Luvas de Treino</div>
+              <div class="inv-qty">23</div>
+              <div class="inv-unit">pares</div>
+              <div class="inv-status"><span class="pill pill-green">OK</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">🔑</div>
+              <div class="inv-name">Cadeados Armário</div>
+              <div class="inv-qty">5</div>
+              <div class="inv-unit">unidades</div>
+              <div class="inv-status"><span class="pill pill-red">Crítico</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">🧹</div>
+              <div class="inv-name">Produto Limpeza</div>
+              <div class="inv-qty">18</div>
+              <div class="inv-unit">litros</div>
+              <div class="inv-status"><span class="pill pill-green">OK</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">💧</div>
+              <div class="inv-name">Água Mineral</div>
+              <div class="inv-qty">96</div>
+              <div class="inv-unit">garrafas</div>
+              <div class="inv-status"><span class="pill pill-green">OK</span></div>
+            </div>
+            <div class="inv-item">
+              <div class="inv-icon">🧤</div>
+              <div class="inv-name">Elásticos Resistência</div>
+              <div class="inv-qty">31</div>
+              <div class="inv-unit">unidades</div>
+              <div class="inv-status"><span class="pill pill-green">OK</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ╔══ SOCIAL PAGES ══╗ -->
+
+      <!-- FEED -->
+      <div class="page" id="page-feed">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Feed <span>Social</span></div>
+            <div class="page-subtitle" id="feed-subtitle">Acompanhe os resultados da galera 💪</div>
+          </div>
+        </div>
+
+        <!-- COMPOSE -->
+        <div class="compose-box" id="compose-area">
+          <div class="compose-top">
+            <div class="post-avatar personal" id="compose-avatar">CF</div>
+            <textarea class="compose-textarea" id="compose-text" placeholder="Compartilhe uma conquista, dica ou progresso..."></textarea>
+          </div>
+          <div class="compose-actions">
+            <div class="compose-type" id="compose-type-btns">
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" onclick="setPostType('post')">📸 Post</button>
+              <button class="btn-outline" style="padding:5px 12px;font-size:12px;" id="btn-comunicado" onclick="setPostType('comunicado')">📢 Comunicado</button>
+            </div>
+            <button class="btn-sm" onclick="publishPost()">Publicar →</button>
+          </div>
+        </div>
+
+        <div class="feed-layout">
+          <div id="feed-posts">
+            <!-- ANNOUNCEMENT -->
+            <div class="feed-post announcement">
+              <div class="post-header">
+                <div class="post-avatar personal">CF</div>
+                <div>
+                  <div class="post-name">Carlos Ferreira — Personal<span class="announcement-tag">📢 COMUNICADO</span></div>
+                  <div class="post-role">Treinador Responsável</div>
+                </div>
+                <div class="post-time">hoje 09:00</div>
+              </div>
+              <div class="post-body">
+                <p>⚠️ <strong>ATENÇÃO — Mudança de horário:</strong> A partir de segunda-feira (31/03), a academia abrirá às 05h30 nos dias úteis. Domingo permanece das 08h às 13h. Qualquer dúvida, fale comigo diretamente!</p>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="likePost(this)">❤️ <span>12</span></button>
+                <button class="post-action">💬 <span>4 comentários</span></button>
+              </div>
+            </div>
+
+            <!-- POST 1 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="post-avatar aluno1">LR</div>
+                <div>
+                  <div class="post-name">Lucas Rodrigues</div>
+                  <div class="post-role">Aluno ativo · Hipertrofia A</div>
+                </div>
+                <div class="post-time">há 2h</div>
+              </div>
+              <div class="post-image">🏋️</div>
+              <div class="post-body">
+                <p>PR novo no supino hoje! Cheguei nos 100kg pela primeira vez 🔥 3 meses de treino duro valendo a pena. Obrigado @carlosferreira pela programação top!</p>
+              </div>
+              <div class="post-actions">
+                <button class="post-action liked" onclick="likePost(this)">❤️ <span>34</span></button>
+                <button class="post-action">💬 <span>8 comentários</span></button>
+                <button class="post-action">🔁 <span>Compartilhar</span></button>
+              </div>
+            </div>
+
+            <!-- POST 2 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="post-avatar aluno2">FC</div>
+                <div>
+                  <div class="post-name">Fernanda Costa</div>
+                  <div class="post-role">Aluna ativa · Funcional C</div>
+                </div>
+                <div class="post-time">há 4h</div>
+              </div>
+              <div class="post-body">
+                <p>Completei meu desafio de 30 dias sem falhar um treino! 💪 Quem precisar de motivação, é só me chamar. A galera da academia é muito boa demais 🙌</p>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="likePost(this)">❤️ <span>21</span></button>
+                <button class="post-action">💬 <span>5 comentários</span></button>
+                <button class="post-action">🔁 <span>Compartilhar</span></button>
+              </div>
+            </div>
+
+            <!-- POST 3 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="post-avatar aluno3">JA</div>
+                <div>
+                  <div class="post-name">João Alves</div>
+                  <div class="post-role">Aluno ativo · Peito/Tríceps</div>
+                </div>
+                <div class="post-time">ontem</div>
+              </div>
+              <div class="post-body">
+                <p>Dica do dia: nunca pule o aquecimento! Hoje fiz 10 min de mobilidade antes do treino de costas e a diferença foi absurda. Costas voando sem travar o ombro 👌</p>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="likePost(this)">❤️ <span>17</span></button>
+                <button class="post-action">💬 <span>3 comentários</span></button>
+                <button class="post-action">🔁 <span>Compartilhar</span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT SIDEBAR -->
+          <div class="right-sidebar">
+            <div class="widget">
+              <div class="widget-header"><div class="dot"></div>Meu Treino da Semana</div>
+              <div class="widget-body">
+                <div class="my-workout-day"><div class="day-label">SEG</div><div><div class="workout-name">Hipertrofia A</div><div class="workout-exercises">Peito + Tríceps · 5 ex.</div></div></div>
+                <div class="my-workout-day"><div class="day-label">TER</div><div><div class="workout-name">Hipertrofia B</div><div class="workout-exercises">Costas + Bíceps · 5 ex.</div></div></div>
+                <div class="my-workout-day"><div class="day-label">QUA</div><div><div class="workout-name" style="color:var(--gray-light)">Descanso</div></div></div>
+                <div class="my-workout-day"><div class="day-label">QUI</div><div><div class="workout-name">Pernas</div><div class="workout-exercises">Quad + Posterior · 6 ex.</div></div></div>
+                <div class="my-workout-day"><div class="day-label">SEX</div><div><div class="workout-name">Ombro + Core</div><div class="workout-exercises">4 exercícios</div></div></div>
+              </div>
+            </div>
+            <div class="widget">
+              <div class="widget-header"><div class="dot"></div>Top Ativos esta Semana</div>
+              <div class="widget-body" style="padding:8px 0;">
+                <div class="activity-item"><strong style="font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--red);width:28px;text-align:center;">1</strong> Lucas Rodrigues <span style="margin-left:auto;font-size:12px;color:var(--gray-light);">5 treinos</span></div>
+                <div class="activity-item"><strong style="font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--gray-light);width:28px;text-align:center;">2</strong> João Alves <span style="margin-left:auto;font-size:12px;color:var(--gray-light);">4 treinos</span></div>
+                <div class="activity-item"><strong style="font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--gray-light);width:28px;text-align:center;">3</strong> Carlos Menezes <span style="margin-left:auto;font-size:12px;color:var(--gray-light);">3 treinos</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEUS TREINOS (Aluno) -->
+      <div class="page" id="page-meus-treinos">
+        <div class="page-title">Meus <span>Treinos</span></div>
+        <div class="page-subtitle" style="margin-bottom:24px;">Protocolo definido pelo seu personal · Semana atual</div>
+        <div class="section-card">
+          <div style="padding:0;">
+            <div class="exercise-row" style="padding:16px 20px;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--border);">
+              <div>Dia</div><div>Treino</div><div>Exercícios</div><div>Status</div><div></div>
+            </div>
+            <div class="exercise-row" style="padding:14px 20px;"><div><strong>Segunda</strong></div><div>Hipertrofia A</div><div>5 exercícios</div><div><span class="pill pill-green">Feito</span></div><div><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Ver</button></div></div>
+            <div class="exercise-row" style="padding:14px 20px;"><div><strong>Terça</strong></div><div>Hipertrofia B</div><div>5 exercícios</div><div><span class="pill pill-green">Feito</span></div><div><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Ver</button></div></div>
+            <div class="exercise-row" style="padding:14px 20px;"><div><strong>Quarta</strong></div><div>Descanso</div><div>—</div><div><span class="pill pill-gray">—</span></div><div></div></div>
+            <div class="exercise-row" style="padding:14px 20px;"><div><strong>Quinta</strong></div><div>Pernas</div><div>6 exercícios</div><div><span class="pill pill-yellow">Hoje</span></div><div><button class="btn-sm" style="font-size:12px;padding:5px 12px;">Iniciar</button></div></div>
+            <div class="exercise-row" style="padding:14px 20px;border-bottom:none;"><div><strong>Sexta</strong></div><div>Ombro + Core</div><div>4 exercícios</div><div><span class="pill pill-gray">Pendente</span></div><div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFIL (Aluno) -->
+      <div class="page" id="page-perfil">
+        <div class="page-title" style="margin-bottom:24px;">Meu <span>Perfil</span></div>
+        <div class="dash-grid">
+          <div class="section-card">
+            <div class="section-card-header"><span class="section-card-title">Informações</span><button class="btn-sm">Editar</button></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;">
+                <div class="post-avatar aluno1" style="width:64px;height:64px;font-size:24px;">LR</div>
+                <div><div style="font-size:20px;font-weight:700;">Lucas Rodrigues</div><div style="color:var(--gray-light);font-size:13px;">Aluno desde Jan 2025 · Hipertrofia</div></div>
+              </div>
+              <div class="form-group"><label>Email</label><div style="font-size:14px;color:var(--white-dim);">lucas@email.com</div></div>
+              <div class="form-group"><label>Objetivo</label><div style="font-size:14px;color:var(--white-dim);">Ganho de massa muscular</div></div>
+              <div class="form-group"><label>Plano Atual</label><div><span class="pill pill-green">Mensal — R$180</span></div></div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-card-header"><span class="section-card-title">Evolução</span></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+              <div><label style="font-size:11px;color:var(--gray-light);letter-spacing:2px;">PESO ATUAL</label><div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;">78 <span style="font-size:16px;color:var(--gray-light);">kg</span></div></div>
+              <div><label style="font-size:11px;color:var(--gray-light);letter-spacing:2px;">FREQUÊNCIA SEMANAL</label><div class="progress-bar-wrap" style="height:8px;margin-top:8px;"><div class="progress-bar" style="width:80%;height:8px;"></div></div><div style="font-size:13px;margin-top:4px;">4 de 5 dias</div></div>
+              <div><label style="font-size:11px;color:var(--gray-light);letter-spacing:2px;">TREINOS NO MÊS</label><div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--red);">16</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-layout -->
+</div><!-- /app -->
+
+<!-- ─── MODALS ─── -->
+<div class="modal-overlay" id="modal-add-aluno" onclick="closeModalOutside(event,'modal-add-aluno')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Novo Aluno</div><button class="modal-close" onclick="closeModal('modal-add-aluno')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Nome Completo</label><input type="text" placeholder="Ex: João Silva"></div><div class="form-group"><label>Email</label><input type="email" placeholder="joao@email.com"></div></div>
+      <div class="form-row"><div class="form-group"><label>Telefone</label><input type="text" placeholder="(51) 99999-9999"></div><div class="form-group"><label>Data de Nascimento</label><input type="date"></div></div>
+      <div class="form-row"><div class="form-group"><label>Plano</label><select><option>Mensal — R$ 180</option><option>Trimestral — R$ 480</option><option>Semestral — R$ 900</option><option>Anual — R$ 1.680</option></select></div><div class="form-group"><label>Treino</label><select><option>Hipertrofia A</option><option>Hipertrofia B</option><option>Funcional C</option><option>Full Body</option></select></div></div>
+      <div class="form-group"><label>Objetivo</label><textarea rows="2" placeholder="Objetivo do aluno..."></textarea></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;"><button class="btn-outline" onclick="closeModal('modal-add-aluno')">Cancelar</button><button class="btn-primary" style="padding:10px 28px;" onclick="closeModal('modal-add-aluno');alert('Aluno cadastrado!')">Cadastrar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-treino" onclick="closeModalOutside(event,'modal-treino')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Criar Treino</div><button class="modal-close" onclick="closeModal('modal-treino')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Nome do Treino</label><input type="text" placeholder="Ex: Hipertrofia C — Pernas"></div><div class="form-group"><label>Nível</label><select><option>Iniciante</option><option>Intermediário</option><option>Avançado</option></select></div></div>
+      <div class="form-group"><label>Exercícios</label>
+        <div style="background:var(--black3);border:1px solid var(--border);border-radius:3px;padding:12px;">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:8px;"><div>Exercício</div><div>Séries</div><div>Reps</div><div>Descanso</div></div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:6px;"><input placeholder="Nome do exercício"><input placeholder="4" type="number"><input placeholder="10-12"><input placeholder="60s"></div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:6px;"><input placeholder="Nome do exercício"><input placeholder="3" type="number"><input placeholder="12-15"><input placeholder="45s"></div>
+          <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="alert('Linha adicionada!')">+ Adicionar Exercício</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;"><button class="btn-outline" onclick="closeModal('modal-treino')">Cancelar</button><button class="btn-primary" style="padding:10px 28px;" onclick="closeModal('modal-treino');alert('Treino criado!')">Salvar Treino</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-mensalidade" onclick="closeModalOutside(event,'modal-mensalidade')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Registrar Pagamento</div><button class="modal-close" onclick="closeModal('modal-mensalidade')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Aluno</label><select><option>Lucas Rodrigues</option><option>Fernanda Costa</option><option>João Alves</option><option>Mariana Lima</option></select></div><div class="form-group"><label>Valor</label><input type="text" placeholder="R$ 180,00" value="R$ 180,00"></div></div>
+      <div class="form-row"><div class="form-group"><label>Data de Pagamento</label><input type="date"></div><div class="form-group"><label>Forma de Pagamento</label><select><option>PIX</option><option>Cartão de Crédito</option><option>Dinheiro</option><option>Boleto</option></select></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;"><button class="btn-outline" onclick="closeModal('modal-mensalidade')">Cancelar</button><button class="btn-primary" style="padding:10px 28px;" onclick="closeModal('modal-mensalidade');alert('Pagamento registrado!')">Registrar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-lancamento" onclick="closeModalOutside(event,'modal-lancamento')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Novo Lançamento</div><button class="modal-close" onclick="closeModal('modal-lancamento')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Tipo</label><select><option>Receita</option><option>Despesa</option></select></div><div class="form-group"><label>Valor</label><input type="text" placeholder="R$ 0,00"></div></div>
+      <div class="form-group"><label>Descrição</label><input type="text" placeholder="Descreva o lançamento..."></div>
+      <div class="form-row"><div class="form-group"><label>Categoria</label><select><option>Mensalidades</option><option>Estoque</option><option>Fixo</option><option>Outros</option></select></div><div class="form-group"><label>Data</label><input type="date"></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;"><button class="btn-outline" onclick="closeModal('modal-lancamento')">Cancelar</button><button class="btn-primary" style="padding:10px 28px;" onclick="closeModal('modal-lancamento');alert('Lançamento registrado!')">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-produto" onclick="closeModalOutside(event,'modal-produto')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Novo Item</div><button class="modal-close" onclick="closeModal('modal-produto')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Nome do Produto</label><input type="text" placeholder="Ex: Whey Protein"></div><div class="form-group"><label>Quantidade</label><input type="number" placeholder="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>Unidade</label><input type="text" placeholder="unidades, kg, litros..."></div><div class="form-group"><label>Estoque Mínimo</label><input type="number" placeholder="5"></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;"><button class="btn-outline" onclick="closeModal('modal-produto')">Cancelar</button><button class="btn-primary" style="padding:10px 28px;" onclick="closeModal('modal-produto');alert('Item adicionado!')">Adicionar</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole = 'personal';
+let currentView = 'painel';
+let postType = 'post';
+
+function setRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function doLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  applyRole();
+}
+
+function applyRole() {
+  const roleTag = document.getElementById('role-tag');
+  const viewSwitch = document.getElementById('view-switch');
+  const sidebarPersonal = document.getElementById('sidebar-personal');
+  const sidebarAluno = document.getElementById('sidebar-aluno');
+  const topbarName = document.getElementById('topbar-name');
+  const topbarAvatar = document.getElementById('topbar-avatar');
+  const composeTypeBtn = document.getElementById('btn-comunicado');
+  const feedSubtitle = document.getElementById('feed-subtitle');
+
+  if (currentRole === 'personal') {
+    roleTag.textContent = 'PERSONAL';
+    viewSwitch.style.display = 'flex';
+    sidebarPersonal.style.display = 'flex';
+    sidebarAluno.style.display = 'none';
+    topbarName.textContent = 'Carlos Ferreira';
+    topbarAvatar.textContent = 'CF';
+    document.getElementById('compose-avatar').textContent = 'CF';
+    document.getElementById('compose-avatar').className = 'post-avatar personal';
+    composeTypeBtn.style.display = 'inline-flex';
+    feedSubtitle.textContent = 'Gerencie comunicados e interaja com os alunos 📢';
+    switchView('painel');
+  } else {
+    roleTag.textContent = 'ALUNO';
+    viewSwitch.style.display = 'none';
+    sidebarPersonal.style.display = 'none';
+    sidebarAluno.style.display = 'flex';
+    topbarName.textContent = 'Lucas Rodrigues';
+    topbarAvatar.textContent = 'LR';
+    document.getElementById('compose-avatar').textContent = 'LR';
+    document.getElementById('compose-avatar').className = 'post-avatar aluno1';
+    composeTypeBtn.style.display = 'none';
+    feedSubtitle.textContent = 'Acompanhe os resultados da galera 💪';
+    switchView('social');
+    goSocialPage('feed');
+  }
+}
+
+function switchView(view) {
+  currentView = view;
+  document.getElementById('btn-painel').classList.toggle('active', view === 'painel');
+  document.getElementById('btn-social').classList.toggle('active', view === 'social');
+  document.getElementById('sidebar-personal').style.display = view === 'painel' ? 'flex' : 'none';
+  if (view === 'social') {
+    hideAllPages();
+    document.getElementById('page-feed').classList.add('active');
+    setActiveSidebar(null);
+  } else {
+    goPage('dashboard');
+  }
+}
+
+function hideAllPages() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+}
+
+function setActiveSidebar(pageId) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+}
+
+function goPage(pageId) {
+  hideAllPages();
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('#sidebar-personal .sidebar-item').forEach(i => {
+    i.classList.toggle('active', i.getAttribute('onclick')?.includes(pageId));
+  });
+  if (['feed','meus-treinos','perfil'].includes(pageId)) {
+    currentView = 'social';
+  }
+}
+
+function goSocialPage(pageId) {
+  hideAllPages();
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('#sidebar-aluno .sidebar-item').forEach(i => {
+    i.classList.toggle('active', i.getAttribute('onclick')?.includes(pageId));
+  });
+}
+
+function setPostType(type) {
+  postType = type;
+  document.querySelectorAll('.compose-type button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const ta = document.getElementById('compose-text');
+  ta.placeholder = type === 'comunicado' ? '📢 Escreva um comunicado para todos os alunos...' : 'Compartilhe uma conquista, dica ou progresso...';
+}
+
+function publishPost() {
+  const text = document.getElementById('compose-text').value.trim();
+  if (!text) { alert('Escreva algo antes de publicar!'); return; }
+
+  const isAnnouncement = postType === 'comunicado' && currentRole === 'personal';
+  const name = currentRole === 'personal' ? 'Carlos Ferreira — Personal' : 'Lucas Rodrigues';
+  const role = currentRole === 'personal' ? 'Treinador Responsável' : 'Aluno ativo · Hipertrofia A';
+  const avatarClass = currentRole === 'personal' ? 'personal' : 'aluno1';
+  const avatarTxt = currentRole === 'personal' ? 'CF' : 'LR';
+
+  const postEl = document.createElement('div');
+  postEl.className = 'feed-post' + (isAnnouncement ? ' announcement' : '');
+  postEl.innerHTML = `
+    <div class="post-header">
+      <div class="post-avatar ${avatarClass}">${avatarTxt}</div>
+      <div>
+        <div class="post-name">${name}${isAnnouncement ? '<span class="announcement-tag">📢 COMUNICADO</span>' : ''}</div>
+        <div class="post-role">${role}</div>
+      </div>
+      <div class="post-time">agora</div>
+    </div>
+    <div class="post-body"><p>${text}</p></div>
+    <div class="post-actions">
+      <button class="post-action" onclick="likePost(this)">❤️ <span>0</span></button>
+      <button class="post-action">💬 <span>0 comentários</span></button>
+    </div>`;
+
+  const feed = document.getElementById('feed-posts');
+  feed.insertBefore(postEl, feed.firstChild);
+  document.getElementById('compose-text').value = '';
+  postType = 'post';
+  document.querySelectorAll('.compose-type button').forEach(b => b.classList.remove('active'));
+}
+
+function likePost(btn) {
+  const span = btn.querySelector('span');
+  const liked = btn.classList.toggle('liked');
+  const n = parseInt(span.textContent) || 0;
+  span.textContent = liked ? n + 1 : n - 1;
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function closeModalOutside(e, id) {
+  if (e.target.id === id) closeModal(id);
+}
+</script>
+</body>
+</html>
